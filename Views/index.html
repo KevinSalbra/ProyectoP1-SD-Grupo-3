@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Sistema de Reservas de Hotel</title>
+
+    <link rel="stylesheet" href="/css/estilos.css">
+</head>
+
+<body>
+
+    <header class="encabezado">
+        <div class="encabezado-contenido">
+            <h1>Sistema de Reservas de Hotel</h1>
+            <p>Gestión de habitaciones y reservas</p>
+        </div>
+    </header>
+
+    <nav class="navegacion">
+        <div class="navegacion-contenido">
+            <a href="/" class="activo">Inicio</a>
+            <a href="/habitaciones">Habitaciones</a>
+            <a href="/reservas">Gestión de Reservas</a>
+            <a href="/reportes">Reportes</a>
+        </div>
+    </nav>
+
+    <main class="contenedor">
+
+        <section class="bienvenida">
+            <h2>Panel Principal</h2>
+
+            <p>
+                Bienvenido al Sistema de Reservas de Hotel.
+            </p>
+        </section>
+
+        <section class="resumen">
+
+            <article class="tarjeta">
+                <h3>Habitaciones disponibles</h3>
+
+                <p
+                    class="numero"
+                    id="habitaciones-disponibles"
+                >
+                    0
+                </p>
+            </article>
+
+            <article class="tarjeta">
+                <h3>Reservas activas</h3>
+
+                <p
+                    class="numero"
+                    id="reservas-activas"
+                >
+                    0
+                </p>
+            </article>
+
+            <article class="tarjeta">
+                <h3>Clientes registrados</h3>
+
+                <p
+                    class="numero"
+                    id="clientes-registrados"
+                >
+                    0
+                </p>
+            </article>
+
+            <article class="tarjeta">
+                <h3>Habitaciones ocupadas</h3>
+
+                <p
+                    class="numero"
+                    id="habitaciones-ocupadas"
+                >
+                    0
+                </p>
+            </article>
+
+        </section>
+
+        <section class="seccion">
+
+            <h2>Accesos rápidos</h2>
+
+            <div class="accesos">
+
+                <a
+                    href="/habitaciones"
+                    class="acceso"
+                >
+                    <h3>Consultar habitaciones</h3>
+
+                    <p>
+                        Consultar disponibilidad y tarifas.
+                    </p>
+                </a>
+
+                <a
+                    href="/reservas"
+                    class="acceso"
+                >
+                    <h3>Gestionar reservas</h3>
+
+                    <p>
+                        Crear y administrar reservas.
+                    </p>
+                </a>
+
+                <a
+                    href="/reportes"
+                    class="acceso"
+                >
+                    <h3>Ver reportes</h3>
+
+                    <p>
+                        Consultar información y resúmenes.
+                    </p>
+                </a>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <footer>
+        <p>
+            Sistema de Reservas de Hotel -
+            Proyecto Sistemas Distribuidos
+        </p>
+    </footer>
+
+    <script>
+
+    fetch("/api/habitaciones")
+        .then(respuesta => respuesta.json())
+        .then(datos => {
+
+            let disponibles = 0;
+            let ocupadas = 0;
+
+
+            datos.forEach(habitacion => {
+
+                if (habitacion.estado === "Disponible") {
+                    disponibles++;
+                }
+
+                if (habitacion.estado === "Ocupada") {
+                    ocupadas++;
+                }
+
+            });
+
+
+            document.getElementById(
+                "habitaciones-disponibles"
+            ).textContent = disponibles;
+
+            document.getElementById(
+                "habitaciones-ocupadas"
+            ).textContent = ocupadas;
+
+        })
+        .catch(error => {
+            console.error(error);
+        });
+
+</script>
+</body>
+
+</html>

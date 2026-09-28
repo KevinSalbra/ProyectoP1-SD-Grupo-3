@@ -1,0 +1,8 @@
+101,Individual,1,45000,Disponible
+102,Individual,1,45000,Disponible
+103,Individual,1,45000,Ocupada
+201,Doble,2,75000,Disponible
+202,Doble,2,75000,Reservada
+203,Doble,2,75000,Disponible
+301,Suite,4,120000,Ocupada
+302,Suite,4,120000,Disponible

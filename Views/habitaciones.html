@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Consulta de Habitaciones</title>
+
+    <link rel="stylesheet" href="/css/estilos.css">
+</head>
+
+<body>
+
+    <header class="encabezado">
+        <div class="encabezado-contenido">
+        <h1>Sistema de Reservas de Hotel</h1>
+        <p>Gestión de habitaciones y reservas</p>
+        </div>
+    </header>
+
+    <nav class="navegacion">
+
+        <div class="navegacion-contenido">
+
+        <a href="/">Inicio</a>
+
+        <a href="/habitaciones" class="activo">
+            Habitaciones
+        </a>
+
+        <a href="/reservas">
+            Gestión de Reservas
+        </a>
+
+        <a href="/reportes">
+            Reportes
+        </a>
+
+        </div>
+
+    </nav>
+
+    <main class="contenedor">
+
+        <section class="encabezado-pagina">
+            <h2>Consulta de Habitaciones</h2>
+            <p>
+                Consulte las habitaciones registradas
+                y su disponibilidad actual.
+            </p>
+        </section>
+
+
+        <section class="resumen-habitaciones">
+
+            <div class="resumen-item">
+                <span>Disponibles</span>
+                <strong id="contador-disponibles">0</strong>
+            </div>
+
+            <div class="resumen-item">
+                <span>Ocupadas</span>
+                <strong id="contador-ocupadas">0</strong>
+            </div>
+
+            <div class="resumen-item">
+                <span>Reservadas</span>
+                <strong id="contador-reservadas">0</strong>
+            </div>
+
+        </section>
+
+
+        <section class="seccion-habitaciones">
+
+            <h3>Habitaciones registradas</h3>
+
+            <table>
+
+                <thead>
+                    <tr>
+                        <th>Número</th>
+                        <th>Tipo</th>
+                        <th>Capacidad</th>
+                        <th>Precio por noche</th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+
+                <tbody id="tabla-habitaciones">
+
+                    <tr>
+                        <td colspan="5">
+                            Cargando habitaciones...
+                        </td>
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </section>
+
+    </main>
+
+
+    <footer>
+        <p>
+            Sistema de Reservas de Hotel -
+            Proyecto Sistemas Distribuidos
+        </p>
+    </footer>
+
+    <script>
+
+    fetch("/api/habitaciones")
+        .then(respuesta => respuesta.json())
+        .then(datos => {
+
+    const tabla =
+        document.getElementById("tabla-habitaciones");
+
+    tabla.innerHTML = "";
+
+
+    let disponibles = 0;
+    let ocupadas = 0;
+    let reservadas = 0;
+
+
+    datos.forEach(habitacion => {
+
+        if (habitacion.estado === "Disponible") {
+            disponibles++;
+        }
+
+        if (habitacion.estado === "Ocupada") {
+            ocupadas++;
+        }
+
+        if (habitacion.estado === "Reservada") {
+            reservadas++;
+        }
+
+    });
+
+
+    document.getElementById("contador-disponibles").textContent =
+        disponibles;
+
+    document.getElementById("contador-ocupadas").textContent =
+        ocupadas;
+
+    document.getElementById("contador-reservadas").textContent =
+        reservadas;
+
+
+    datos.forEach(habitacion => {
+
+        const fila = document.createElement("tr");
+
+        fila.innerHTML = `
+            <td>${habitacion.numero}</td>
+            <td>${habitacion.tipo}</td>
+            <td>${habitacion.capacidad}</td>
+            <td>₡${habitacion.precio}</td>
+            <td>${habitacion.estado}</td>
+        `;
+
+        tabla.appendChild(fila);
+
+    });
+
+})
+
+</script>
+</body>
+
+</html>

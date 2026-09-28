@@ -1,0 +1,24 @@
+{
+  "name": "proyectop1-sd-grupo-3",
+  "version": "1.0.0",
+  "description": "Repositorio del proyecto 1, grupo 3 para el curso de Sistemas Distribuidos",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/KevinSalbra/ProyectoP1-SD-Grupo-3.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/KevinSalbra/ProyectoP1-SD-Grupo-3/issues"
+  },
+  "homepage": "https://github.com/KevinSalbra/ProyectoP1-SD-Grupo-3#readme",
+  "dependencies": {
+    "express": "^5.2.1"
+  }
+}
