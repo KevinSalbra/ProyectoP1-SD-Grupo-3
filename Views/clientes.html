@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Clientes</title>
+
+    <link rel="stylesheet" href="/css/estilos.css">
+</head>
+
+<body>
+
+    <header class="encabezado">
+        <div class="encabezado-contenido">
+            <h1>Sistema de Reservas de Hotel</h1>
+            <p>Gestión de habitaciones y reservas</p>
+        </div>
+    </header>
+
+    <nav class="navegacion">
+        <div class="navegacion-contenido">
+            <a href="/">Inicio</a>
+            <a href="/habitaciones">Habitaciones</a>
+            <a href="/clientes" class="activo">Clientes</a>
+            <a href="/reservas">Gestión de Reservas</a>
+            <a href="/reportes">Reportes</a>
+        </div>
+    </nav>
+
+    <main class="contenedor">
+
+        <section class="encabezado-pagina">
+            <h2>Clientes</h2>
+            <p>Registre los clientes que realizarán reservas.</p>
+        </section>
+
+        <section class="panel">
+
+            <h3>Registrar cliente</h3>
+
+            <div class="formulario">
+                <div class="campo">
+                    <label>Nombre completo</label>
+                    <input type="text" id="c-nombre">
+                </div>
+                <div class="campo">
+                    <label>Cédula</label>
+                    <input type="text" id="c-cedula">
+                </div>
+                <div class="campo">
+                    <label>Correo electrónico</label>
+                    <input type="text" id="c-correo">
+                </div>
+                <div class="campo">
+                    <label>Teléfono</label>
+                    <input type="text" id="c-telefono">
+                </div>
+            </div>
+
+            <p><button onclick="registrarCliente()">Registrar cliente</button></p>
+
+            <div id="mensaje-cliente" class="mensaje"></div>
+
+        </section>
+
+        <section class="seccion-habitaciones">
+
+            <h3>Clientes registrados</h3>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Nombre</th>
+                        <th>Cédula</th>
+                        <th>Correo</th>
+                        <th>Teléfono</th>
+                    </tr>
+                </thead>
+                <tbody id="tabla-clientes"></tbody>
+            </table>
+
+        </section>
+
+    </main>
+
+    <footer>
+        <p>Sistema de Reservas de Hotel - Proyecto Sistemas Distribuidos</p>
+    </footer>
+
+    <script>
+
+    function mostrar(id, texto, tipo) {
+        const caja = document.getElementById(id);
+        caja.textContent = texto;
+        caja.className = "mensaje " + tipo;
+    }
+
+
+    // ---------------- CONSULTAR (GET) ----------------
+
+    async function cargarClientes() {
+
+        const respuesta = await fetch("/api/clientes");
+        const clientes = await respuesta.json();
+
+        const tabla = document.getElementById("tabla-clientes");
+        tabla.innerHTML = "";
+
+        clientes.forEach(c => {
+            tabla.innerHTML += `
+                <tr>
+                    <td>${c.id}</td>
+                    <td>${c.nombre}</td>
+                    <td>${c.cedula}</td>
+                    <td>${c.correo}</td>
+                    <td>${c.telefono}</td>
+                </tr>`;
+        });
+    }
+
+
+    // ---------------- REGISTRAR (POST) ----------------
+
+    async function registrarCliente() {
+
+        const cliente = {
+            nombre: document.getElementById("c-nombre").value,
+            cedula: document.getElementById("c-cedula").value,
+            correo: document.getElementById("c-correo").value,
+            telefono: document.getElementById("c-telefono").value
+        };
+
+        try {
+
+            const respuesta = await fetch("/api/clientes", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(cliente)
+            });
+
+            const datos = await respuesta.json();
+
+            if (!respuesta.ok) {
+                mostrar("mensaje-cliente", datos.error, "error");
+                return;
+            }
+
+            mostrar("mensaje-cliente", `Cliente "${datos.nombre}" registrado correctamente.`, "exito");
+
+            ["c-nombre", "c-cedula", "c-correo", "c-telefono"]
+                .forEach(id => document.getElementById(id).value = "");
+
+            await cargarClientes();
+
+        } catch (error) {
+            mostrar("mensaje-cliente", "No se pudo conectar con el servidor.", "error");
+        }
+    }
+
+
+    cargarClientes();
+
+    </script>
+</body>
+
+</html>

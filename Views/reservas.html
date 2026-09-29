@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Gestión de Reservas</title>
+
+    <link rel="stylesheet" href="/css/estilos.css">
+</head>
+
+<body>
+
+    <header class="encabezado">
+        <div class="encabezado-contenido">
+            <h1>Sistema de Reservas de Hotel</h1>
+            <p>Gestión de habitaciones y reservas</p>
+        </div>
+    </header>
+
+    <nav class="navegacion">
+        <div class="navegacion-contenido">
+            <a href="/">Inicio</a>
+            <a href="/habitaciones">Habitaciones</a>
+            <a href="/clientes">Clientes</a>
+            <a href="/reservas" class="activo">Gestión de Reservas</a>
+            <a href="/reportes">Reportes</a>
+        </div>
+    </nav>
+
+    <main class="contenedor">
+
+        <section class="encabezado-pagina">
+            <h2>Gestión de Reservas</h2>
+            <p>Administre las reservas. Los clientes se registran en la página <a href="/clientes">Clientes</a>.</p>
+        </section>
+
+        <section class="panel">
+
+            <h3 id="titulo-reserva">Crear reserva</h3>
+
+            <div class="formulario">
+                <div class="campo">
+                    <label>Cliente</label>
+                    <select id="r-cliente"></select>
+                </div>
+                <div class="campo">
+                    <label>Habitación (solo disponibles)</label>
+                    <select id="r-habitacion"></select>
+                </div>
+                <div class="campo">
+                    <label>Fecha de entrada</label>
+                    <input type="date" id="r-entrada">
+                </div>
+                <div class="campo">
+                    <label>Fecha de salida</label>
+                    <input type="date" id="r-salida">
+                </div>
+                <div class="campo">
+                    <label>Cantidad de huéspedes</label>
+                    <input type="number" id="r-huespedes" min="1" value="1">
+                </div>
+            </div>
+
+            <div id="resultado-rpc" class="resultado-rpc"></div>
+
+            <p>
+                <button class="secundario" onclick="calcularPrecio()">Calcular precio (RPC)</button>
+                <button id="boton-guardar" onclick="guardarReserva()">Confirmar reserva</button>
+                <button id="boton-salir" class="secundario" onclick="terminarEdicion()" style="display:none">Cancelar edición</button>
+            </p>
+
+            <div id="mensaje-reserva" class="mensaje"></div>
+
+        </section>
+
+        <section class="seccion-habitaciones">
+
+            <h3>Reservas registradas</h3>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Cliente</th>
+                        <th>Habitación</th>
+                        <th>Entrada</th>
+                        <th>Salida</th>
+                        <th>Huéspedes</th>
+                        <th>Noches</th>
+                        <th>Total</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="tabla-reservas"></tbody>
+            </table>
+
+        </section>
+
+    </main>
+
+    <footer>
+        <p>Sistema de Reservas de Hotel - Proyecto Sistemas Distribuidos</p>
+    </footer>
+
+    <script>
+
+    let habitaciones = [];
+    let reservas = [];
+    let editandoId = null;
+
+
+    function mostrar(id, texto, tipo) {
+        const caja = document.getElementById(id);
+        caja.textContent = texto;
+        caja.className = "mensaje " + tipo;
+    }
+
+
+    // ---------------- CONSULTAR (GET) ----------------
+
+    async function cargarClientes() {
+
+        const respuesta = await fetch("/api/clientes");
+        const clientes = await respuesta.json();
+
+        const select = document.getElementById("r-cliente");
+        select.innerHTML = "";
+
+        clientes.forEach(c => {
+            select.innerHTML += `<option value="${c.id}">${c.nombre} (${c.cedula})</option>`;
+        });
+    }
+
+
+    async function cargarHabitaciones() {
+
+        const respuesta = await fetch("/api/habitaciones");
+        habitaciones = await respuesta.json();
+
+        const select = document.getElementById("r-habitacion");
+        select.innerHTML = "";
+
+        habitaciones.forEach(h => {
+            if (h.estado === "Disponible") {
+                select.innerHTML +=
+                    `<option value="${h.numero}">${h.numero} - ${h.tipo} (₡${h.precio}/noche)</option>`;
+            }
+        });
+    }
+
+
+    async function cargarReservas() {
+
+        const respuesta = await fetch("/api/reservas");
+        reservas = await respuesta.json();
+
+        const tabla = document.getElementById("tabla-reservas");
+        tabla.innerHTML = "";
+
+        reservas.forEach(r => {
+            tabla.innerHTML += `
+                <tr>
+                    <td>${r.id}</td>
+                    <td>${r.clienteNombre}</td>
+                    <td>${r.habitacion}</td>
+                    <td>${r.entrada}</td>
+                    <td>${r.salida}</td>
+                    <td>${r.huespedes}</td>
+                    <td>${r.noches}</td>
+                    <td>₡${r.total}</td>
+                    <td>
+                        <button class="editar" onclick="editarReserva(${r.id})">Modificar</button>
+                        <button class="peligro" onclick="cancelarReserva(${r.id})">Cancelar</button>
+                    </td>
+                </tr>`;
+        });
+    }
+
+
+    // ---------------- PRECIO (RPC) ----------------
+
+    async function calcularPrecio() {
+
+        const caja = document.getElementById("resultado-rpc");
+
+        const numero = editandoId
+            ? reservas.find(r => r.id === editandoId).habitacion
+            : document.getElementById("r-habitacion").value;
+
+        const entrada = document.getElementById("r-entrada").value;
+        const salida = document.getElementById("r-salida").value;
+
+        if (!numero || !entrada || !salida) {
+            mostrar("mensaje-reserva", "Seleccione habitación y fechas para calcular el precio.", "error");
+            return null;
+        }
+
+        const precio = habitaciones.find(h => h.numero === numero).precio;
+
+        try {
+
+            const respuesta = await fetch(
+                `/api/rpc/precio?precio=${precio}&entrada=${entrada}&salida=${salida}`
+            );
+
+            const datos = await respuesta.json();
+
+            if (!respuesta.ok) {
+                caja.style.display = "none";
+                mostrar("mensaje-reserva", datos.error, "error");
+                return null;
+            }
+
+            caja.style.display = "block";
+            caja.innerHTML =
+                `<strong>Resultado RPC:</strong> ${datos.result.noches} noche(s) × ₡${precio} = ` +
+                `<strong>₡${datos.result.total}</strong>`;
+
+            document.getElementById("mensaje-reserva").className = "mensaje";
+
+            return datos.result;
+
+        } catch (error) {
+            mostrar("mensaje-reserva", "No se pudo realizar la llamada RPC.", "error");
+            return null;
+        }
+    }
+
+
+    // ---------------- RESERVAS (POST / PUT) ----------------
+
+    async function guardarReserva() {
+
+        if (!await calcularPrecio()) {
+            return;
+        }
+
+        const reserva = {
+            clienteId: document.getElementById("r-cliente").value,
+            habitacion: document.getElementById("r-habitacion").value,
+            entrada: document.getElementById("r-entrada").value,
+            salida: document.getElementById("r-salida").value,
+            huespedes: document.getElementById("r-huespedes").value
+        };
+
+        try {
+
+            const respuesta = await fetch(
+                editandoId ? `/api/reservas/${editandoId}` : "/api/reservas",
+                {
+                    method: editandoId ? "PUT" : "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(reserva)
+                }
+            );
+
+            const datos = await respuesta.json();
+
+            if (!respuesta.ok) {
+                mostrar("mensaje-reserva", datos.error, "error");
+                return;
+            }
+
+            const accion = editandoId ? "modificada" : "creada";
+
+            terminarEdicion();
+
+            mostrar("mensaje-reserva", `Reserva #${datos.id} ${accion}. Total: ₡${datos.total}`, "exito");
+
+            await cargarHabitaciones();
+            await cargarReservas();
+
+        } catch (error) {
+            mostrar("mensaje-reserva", "No se pudo conectar con el servidor.", "error");
+        }
+    }
+
+
+    function editarReserva(id) {
+
+        const r = reservas.find(x => x.id === id);
+
+        editandoId = id;
+
+        document.getElementById("titulo-reserva").textContent = `Modificar reserva #${id}`;
+        document.getElementById("r-entrada").value = r.entrada;
+        document.getElementById("r-salida").value = r.salida;
+        document.getElementById("r-huespedes").value = r.huespedes;
+        document.getElementById("boton-guardar").textContent = "Guardar cambios";
+        document.getElementById("boton-salir").style.display = "inline-block";
+
+        window.scrollTo(0, 0);
+    }
+
+
+    function terminarEdicion() {
+
+        editandoId = null;
+
+        document.getElementById("titulo-reserva").textContent = "Crear reserva";
+        document.getElementById("r-entrada").value = "";
+        document.getElementById("r-salida").value = "";
+        document.getElementById("r-huespedes").value = 1;
+        document.getElementById("boton-guardar").textContent = "Confirmar reserva";
+        document.getElementById("boton-salir").style.display = "none";
+        document.getElementById("resultado-rpc").style.display = "none";
+        document.getElementById("mensaje-reserva").className = "mensaje";
+    }
+
+
+    // ---------------- CANCELAR (DELETE) ----------------
+
+    async function cancelarReserva(id) {
+
+        if (!confirm(`¿Desea cancelar la reserva #${id}?`)) {
+            return;
+        }
+
+        try {
+
+            const respuesta = await fetch(`/api/reservas/${id}`, { method: "DELETE" });
+
+            const datos = await respuesta.json();
+
+            if (!respuesta.ok) {
+                mostrar("mensaje-reserva", datos.error, "error");
+                return;
+            }
+
+            if (editandoId === id) {
+                terminarEdicion();
+            }
+
+            mostrar("mensaje-reserva",
+                `Reserva #${datos.id} cancelada. La habitación ${datos.habitacion} vuelve a estar disponible.`,
+                "exito");
+
+            await cargarHabitaciones();
+            await cargarReservas();
+
+        } catch (error) {
+            mostrar("mensaje-reserva", "No se pudo conectar con el servidor.", "error");
+        }
+    }
+
+
+    // ---------------- INICIO ----------------
+
+    async function iniciar() {
+        await cargarClientes();
+        await cargarHabitaciones();
+        await cargarReservas();
+    }
+
+    iniciar();
+
+    </script>
+</body>
+
+</html>

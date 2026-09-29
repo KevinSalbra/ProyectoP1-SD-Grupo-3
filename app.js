@@ -25,6 +25,10 @@ app.get("/habitaciones", (req, res) => {
     res.sendFile(path.join(__dirname, "Views", "habitaciones.html"));
 });
 
+app.get("/clientes", (req, res) => {
+    res.sendFile(path.join(__dirname, "Views", "clientes.html"));
+});
+
 app.get("/reservas", (req, res) => {
     res.sendFile(path.join(__dirname, "Views", "reservas.html"));
 });

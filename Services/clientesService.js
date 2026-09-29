@@ -47,6 +47,13 @@ function obtenerCliente(id){
 
 }
 
+function limpiar(texto){
+
+    return String(texto || "").replace(/,/g, " ").trim();
+
+}
+
+
 function registrarCliente(datos){
 
     const nombre = limpiar(datos.nombre);

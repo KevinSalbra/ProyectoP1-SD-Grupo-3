@@ -395,3 +395,103 @@ footer p {
         overflow-x: auto;
     }
 }
+/* =========================================
+  Interfaz 3
+   ========================================= */
+
+.panel {
+    background-color: white;
+    border: 1px solid #dddddd;
+    padding: 25px;
+    margin-bottom: 25px;
+    border-radius: 5px;
+}
+
+.panel h3 {
+    margin-top: 0;
+    color: #0b2d55;
+}
+
+.formulario {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+}
+
+.campo label {
+    display: block;
+    font-size: 14px;
+    color: #4b5563;
+    margin-bottom: 5px;
+}
+
+.campo input,
+.campo select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #c9d1dc;
+    font-size: 14px;
+}
+
+button {
+    padding: 12px 18px;
+    background: #17365d;
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    margin-right: 8px;
+}
+
+button:hover {
+    background: #244d7c;
+}
+
+button.secundario {
+    background: #5b6b7f;
+}
+
+button.peligro {
+    background: #b42318;
+    padding: 8px 12px;
+}
+
+button.editar {
+    background: #1565c0;
+    padding: 8px 12px;
+}
+
+.mensaje {
+    padding: 12px;
+    margin-top: 15px;
+    border-radius: 4px;
+    display: none;
+}
+
+.mensaje.exito {
+    display: block;
+    background-color: #e6f4ea;
+    color: #1e6b34;
+    border: 1px solid #b7dfc2;
+}
+
+.mensaje.error {
+    display: block;
+    background-color: #fdeceb;
+    color: #b42318;
+    border: 1px solid #f5c2be;
+}
+
+.resultado-rpc {
+    margin-top: 15px;
+    padding: 12px;
+    background-color: #eef3fb;
+    border-left: 4px solid #17365d;
+    display: none;
+}
+
+@media (max-width: 700px) {
+    .formulario {
+        grid-template-columns: 1fr;
+    }
+}
