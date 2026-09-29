@@ -2,15 +2,14 @@ const fs = require("fs");
 
 const path = require("path");
 
-
-function obtenerHabitaciones(){
-
     const ruta = path.join(
         __dirname,
         "..",
         "Data",
         "habitaciones.txt"
     );
+
+function obtenerHabitaciones(){
 
     const contenido = fs.readFileSync(
         ruta,
@@ -19,7 +18,7 @@ function obtenerHabitaciones(){
 
     const lineas = contenido
         .trim()
-        .split("\n");
+        .split(/\r?\n/);
 
     const habitaciones = lineas.map((linea) => {
 
@@ -38,5 +37,35 @@ function obtenerHabitaciones(){
     return habitaciones;
 }
 
+function obtenerHabitacion(numero){
 
-module.exports={obtenerHabitaciones};
+    return obtenerHabitaciones().find(
+        (h) => h.numero === String(numero)
+    );
+
+}
+
+
+function cambiarEstado(numero, nuevoEstado){
+
+    const habitaciones = obtenerHabitaciones();
+
+    habitaciones.forEach((h) => {
+
+        if (h.numero === String(numero)) {
+            h.estado = nuevoEstado;
+        }
+
+    });
+
+    const texto = habitaciones
+        .map((h) =>
+            [h.numero, h.tipo, h.capacidad, h.precio, h.estado].join(",")
+        )
+        .join("\n");
+
+    fs.writeFileSync(ruta, texto, "utf8");
+}
+
+
+module.exports={obtenerHabitaciones, obtenerHabitacion, cambiarEstado};
