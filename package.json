@@ -4,6 +4,7 @@
   "description": "Repositorio del proyecto 1, grupo 3 para el curso de Sistemas Distribuidos",
   "main": "app.js",
   "scripts": {
+    "start": "node app.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
