@@ -495,3 +495,42 @@ button.editar {
         grid-template-columns: 1fr;
     }
 }
+/* =========================================
+   Interfaz 4 - Reportes
+   ========================================= */
+
+.bloque-ws {
+    margin-top: 15px;
+    margin-bottom: 0;
+}
+
+.bloque-ws pre {
+    margin: 0;
+    padding: 12px;
+    background-color: #eef3fb;
+    border-left: 4px solid #17365d;
+    font-size: 13px;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    max-height: 320px;
+    overflow-y: auto;
+}
+
+.bloque-ws .mensaje {
+    margin-top: 0;
+}
+
+.bloque-ws .tarjeta {
+    background-color: #f8f9fa;
+}
+
+#ws-resultado {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 15px;
+}
+
+#ws-resultado > p {
+    grid-column: 1 / -1;
+    margin: 0;
+}

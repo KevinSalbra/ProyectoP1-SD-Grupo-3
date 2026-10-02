@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Reportes</title>
+
+    <link rel="stylesheet" href="/css/estilos.css">
+</head>
+
+<body>
+
+    <header class="encabezado">
+        <div class="encabezado-contenido">
+            <h1>Sistema de Reservas de Hotel</h1>
+            <p>Gestión de habitaciones y reservas</p>
+        </div>
+    </header>
+
+    <nav class="navegacion">
+        <div class="navegacion-contenido">
+            <a href="/">Inicio</a>
+            <a href="/habitaciones">Habitaciones</a>
+            <a href="/clientes">Clientes</a>
+            <a href="/reservas">Gestión de Reservas</a>
+            <a href="/reportes" class="activo">Reportes</a>
+        </div>
+    </nav>
+
+    <main class="contenedor">
+
+        <section class="encabezado-pagina">
+            <h2>Reportes</h2>
+            <p>
+                Reportes del clima en el destino del hotel
+                obtenidos del servicio web.
+            </p>
+        </section>
+
+
+        <!-- ==========================================
+         RESUMEN DEL CLIMA (datos del servicio web)
+         ========================================== -->
+
+        <section class="resumen">
+
+            <article class="tarjeta">
+                <h3>Temperatura actual</h3>
+                <p class="numero" id="rep-temperatura">--</p>
+            </article>
+
+            <article class="tarjeta">
+                <h3>Humedad relativa</h3>
+                <p class="numero" id="rep-humedad">--</p>
+            </article>
+
+            <article class="tarjeta">
+                <h3>Viento</h3>
+                <p class="numero" id="rep-viento">--</p>
+            </article>
+
+            <article class="tarjeta">
+                <h3>Lluvia acumulada (últimos días)</h3>
+                <p class="numero" id="rep-lluvia">--</p>
+            </article>
+
+        </section>
+
+
+        <!-- ==========================================
+         SERVICIO WEB: CLIMA DEL HOTEL (Open-Meteo)
+         ========================================== -->
+
+        <section class="seccion">
+
+            <h2>Servicio web: clima del hotel</h2>
+
+            <button onclick="cargarClima()">
+                Consultar clima
+            </button>
+
+            <div class="panel bloque-ws">
+                <h3>Resultado</h3>
+                <div id="ws-resultado">
+                    <p>Sin datos todavía.</p>
+                </div>
+            </div>
+
+            <div class="panel bloque-ws">
+                <h3>Enviado</h3>
+                <pre id="ws-enviado">Presione el botón para consultar
+el clima del hotel.</pre>
+            </div>
+
+            <div class="panel bloque-ws">
+                <h3>Recibido</h3>
+                <pre id="ws-recibido">Sin datos todavía.</pre>
+            </div>
+
+            <div class="panel bloque-ws">
+                <h3>Error</h3>
+                <div id="ws-error" class="mensaje exito">Sin errores.</div>
+            </div>
+
+        </section>
+
+    </main>
+
+    <footer>
+        <p>
+            Sistema de Reservas de Hotel -
+            Proyecto Sistemas Distribuidos
+        </p>
+    </footer>
+
+    <script>
+
+    // Basado en SISD-S4: views/index.html:92-155 (cargarPaises):
+    // async/await, fetch a "/api/...", try/catch y tarjeta con
+    // document.createElement("div"), className, innerHTML y appendChild.
+
+    // Ruta propia y URL externa que se muestran en el bloque "Enviado".
+    // La URL real vive en Services/climaService.js (CLIMA_API).
+    const RUTA_CLIMA = "/api/clima";
+
+    const URL_EXTERNA_CLIMA =
+        "https://api.open-meteo.com/v1/forecast?latitude=9.9281&longitude=-84.0907" +
+        "&current=temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m" +
+        "&daily=temperature_2m_max,temperature_2m_min,precipitation_sum" +
+        "&past_days=7&forecast_days=1&timezone=America/Costa_Rica";
+
+
+    // ---------------- ERROR DEL SERVICIO WEB ----------------
+
+    function mostrarError(texto) {
+        const caja = document.getElementById("ws-error");
+        caja.textContent = texto;
+        caja.className = "mensaje error";
+    }
+
+    function limpiarError() {
+        const caja = document.getElementById("ws-error");
+        caja.textContent = "Sin errores.";
+        caja.className = "mensaje exito";
+    }
+
+
+    // ---------------- SERVICIO WEB (GET /api/clima) ----------------
+
+    async function cargarClima() {
+
+        const enviado = document.getElementById("ws-enviado");
+        const recibido = document.getElementById("ws-recibido");
+        const resultado = document.getElementById("ws-resultado");
+
+        enviado.textContent =
+            "GET " + RUTA_CLIMA + "\n\n" +
+            "El servidor consulta la API externa (GET):\n" +
+            URL_EXTERNA_CLIMA;
+
+        recibido.textContent = "Cargando...";
+        resultado.innerHTML = "<p>Cargando clima del hotel...</p>";
+
+        limpiarError();
+
+        ["rep-temperatura", "rep-humedad", "rep-viento", "rep-lluvia"]
+            .forEach(id => document.getElementById(id).textContent = "--");
+
+        try {
+
+            const respuesta =
+                await fetch(RUTA_CLIMA);
+
+            const clima =
+                await respuesta.json();
+
+            // JSON tal cual lo devolvió el servicio
+            recibido.textContent = JSON.stringify(clima, null, 2);
+
+            // El servidor responde { error: "..." } si algo falla
+            if (clima.error) {
+
+                resultado.innerHTML = "<p>No hay datos para mostrar.</p>";
+
+                mostrarError(clima.error);
+
+                return;
+            }
+
+            const dias = clima.daily.time;
+            const maximas = clima.daily.temperature_2m_max;
+            const minimas = clima.daily.temperature_2m_min;
+            const lluvias = clima.daily.precipitation_sum;
+
+            const promedioMaxima = maximas.reduce(
+                (suma, t) => suma + t, 0
+            ) / maximas.length;
+
+            const promedioMinima = minimas.reduce(
+                (suma, t) => suma + t, 0
+            ) / minimas.length;
+
+            const lluviaTotal = lluvias.reduce(
+                (suma, mm) => suma + mm, 0
+            );
+
+            // Tarjetas del resumen con el clima actual
+            const actual = clima.current;
+            const unidadesActual = clima.current_units;
+
+            document.getElementById("rep-temperatura").textContent =
+                actual.temperature_2m + " " + unidadesActual.temperature_2m;
+
+            document.getElementById("rep-humedad").textContent =
+                actual.relative_humidity_2m + " " + unidadesActual.relative_humidity_2m;
+
+            document.getElementById("rep-viento").textContent =
+                actual.wind_speed_10m + " " + unidadesActual.wind_speed_10m;
+
+            document.getElementById("rep-lluvia").textContent =
+                lluviaTotal.toFixed(1) + " " + clima.daily_units.precipitation_sum;
+
+            resultado.innerHTML = "";
+
+            const tarjeta =
+                document.createElement("div");
+
+            tarjeta.className = "tarjeta";
+
+            tarjeta.innerHTML = `
+
+                <h3>
+                    Clima en el hotel (últimos ${dias.length} días)
+                </h3>
+
+                <p>
+                    <strong>Sensación térmica actual:</strong>
+                    ${actual.apparent_temperature} ${unidadesActual.apparent_temperature}
+                </p>
+
+                <p>
+                    <strong>Temperatura máxima promedio:</strong>
+                    ${promedioMaxima.toFixed(1)} ${clima.daily_units.temperature_2m_max}
+                </p>
+
+                <p>
+                    <strong>Temperatura mínima promedio:</strong>
+                    ${promedioMinima.toFixed(1)} ${clima.daily_units.temperature_2m_min}
+                </p>
+
+                <p>
+                    <strong>Lluvia acumulada:</strong>
+                    ${lluviaTotal.toFixed(1)} ${clima.daily_units.precipitation_sum}
+                </p>
+
+            `;
+
+            resultado.appendChild(tarjeta);
+
+            // Detalle por día
+            dias.forEach((dia, i) => {
+
+                const fila =
+                    document.createElement("div");
+
+                fila.className = "tarjeta";
+
+                fila.innerHTML = `
+
+                    <h3>
+                        ${dia}
+                    </h3>
+
+                    <p>
+                        <strong>Máx / Mín:</strong>
+                        ${maximas[i]} / ${minimas[i]} ${clima.daily_units.temperature_2m_max}
+                    </p>
+
+                    <p>
+                        <strong>Lluvia:</strong>
+                        ${lluvias[i]} ${clima.daily_units.precipitation_sum}
+                    </p>
+
+                `;
+
+                resultado.appendChild(fila);
+
+            });
+
+        } catch (error) {
+
+            console.error(error);
+
+            recibido.textContent = "Sin respuesta del servidor.";
+
+            resultado.innerHTML = "<p>No hay datos para mostrar.</p>";
+
+            mostrarError(
+                "No se pudo conectar con el servidor. " +
+                "Verifique que esté en ejecución y que tenga internet."
+            );
+        }
+    }
+
+
+    // ---------------- INICIO ----------------
+
+    async function iniciar() {
+        await cargarClima();
+    }
+
+    iniciar();
+
+    </script>
+</body>
+
+</html>
