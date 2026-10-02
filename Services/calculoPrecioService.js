@@ -1,3 +1,10 @@
+// ======================================================
+// CÁLCULO DEL PRECIO DE UNA RESERVA
+// Función normal (no es RPC)
+// Parámetros: precioNoche, entrada, salida
+// Resultado:  noches, total
+// ======================================================
+
 const MS_POR_DIA = 24 * 60 * 60 * 1000;
 
 function calcularPrecioReserva(precioNoche, entrada, salida){

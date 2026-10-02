@@ -4,6 +4,11 @@ const router = express.Router();
 
 const reservas = require("../Services/reservasService");
 
+
+// ======================================================
+// GET - CONSULTAR RESERVAS
+// ======================================================
+
 router.get("/", async (req, res) => {
 
     const datos = await reservas.obtenerReservas();
@@ -11,6 +16,43 @@ router.get("/", async (req, res) => {
     res.json(datos);
 
 });
+
+
+// ======================================================
+// GET - CALCULAR PRECIO
+// /api/reservas/precio?habitacion=201&entrada=2026-10-10&salida=2026-10-13
+// ======================================================
+
+router.get("/precio", async (req, res) => {
+
+    try {
+
+        const { habitacion, entrada, salida } = req.query;
+
+        const datos = await reservas.calcularPrecio(
+            habitacion,
+            entrada,
+            salida
+        );
+
+        res.json(datos);
+
+    } catch (error) {
+
+        console.error(error.message);
+
+        res.status(500).json({
+            error: error.message
+        });
+
+    }
+
+});
+
+
+// ======================================================
+// POST - CREAR RESERVA
+// ======================================================
 
 router.post("/", async (req, res) => {
 
@@ -31,6 +73,11 @@ router.post("/", async (req, res) => {
     }
 
 });
+
+
+// ======================================================
+// PUT - MODIFICAR RESERVA
+// ======================================================
 
 router.put("/:id", async (req, res) => {
 
@@ -56,11 +103,15 @@ router.put("/:id", async (req, res) => {
 });
 
 
-router.delete("/:id", (req, res) => {
+// ======================================================
+// DELETE - CANCELAR RESERVA
+// ======================================================
+
+router.delete("/:id", async (req, res) => {
 
     try {
 
-        const cancelada = reservas.cancelarReserva(req.params.id);
+        const cancelada = await reservas.cancelarReserva(req.params.id);
 
         res.json(cancelada);
 

@@ -1,20 +1,36 @@
-const PORT = 3000;
+// ======================================================
+// SERVICIO RPC
+// ======================================================
 
-async function calcularPrecio(precioNoche, entrada, salida) {
 
-    const url = `http://localhost:${PORT}/rpc`;
+// ======================================================
+// RPC #1 - ETHEREUM
+// ======================================================
+
+async function obtenerEthereum() {
+
+    /*
+     * Endpoint RPC de Ethereum
+     *
+     * IMPORTANTE:
+     * Este endpoint puede cambiar dependiendo
+     * de la disponibilidad del proveedor.
+     */
+
+    const url = "https://ethereum-rpc.publicnode.com";
+
+
+    // --------------------------------------------------
+    // MENSAJE JSON-RPC
+    // --------------------------------------------------
 
     const solicitudRPC = {
 
         jsonrpc: "2.0",
 
-        method: "calcularPrecioReserva",
+        method: "eth_blockNumber",
 
-        params: {
-            precioNoche: Number(precioNoche),
-            entrada: entrada,
-            salida: salida
-        },
+        params: [],
 
         id: 1
 
@@ -23,26 +39,32 @@ async function calcularPrecio(precioNoche, entrada, salida) {
 
     console.log("");
     console.log("========================================");
-    console.log("RPC - CALCULAR PRECIO DE RESERVA");
+    console.log("RPC #1 - ETHEREUM");
     console.log("========================================");
 
     console.log("Solicitud:");
+
     console.log(
         JSON.stringify(
-            solicitudRPC, 
-            null, 
-            2)
+            solicitudRPC,
+            null,
+            2
+        )
     );
+
+
     // --------------------------------------------------
     // LLAMADA RPC
     // --------------------------------------------------
- 
+
     const respuesta = await fetch(url, {
 
         method: "POST",
 
         headers: {
+
             "Content-Type": "application/json"
+
         },
 
         body: JSON.stringify(
@@ -51,35 +73,44 @@ async function calcularPrecio(precioNoche, entrada, salida) {
 
     });
 
+
     console.log(
-        "HTTP Status RPC:", 
+        "HTTP Status Ethereum:",
         respuesta.status
     );
+
+
     // --------------------------------------------------
     // VERIFICAR HTTP
     // --------------------------------------------------
- 
+
     if (!respuesta.ok) {
-        throw new Error(`Error HTTP RPC: 
-            ${respuesta.status}`
+
+        throw new Error(
+            `Error HTTP Ethereum: ${respuesta.status}`
         );
+
     }
+
 
     // --------------------------------------------------
     // CONVERTIR A JSON
     // --------------------------------------------------
- 
 
-    const datos = 
+    const datos =
         await respuesta.json();
 
-    console.log("Respuesta RPC:");
 
-    console.log(JSON.stringify(
-        datos, 
-        null, 
-        2)
+    console.log("Respuesta Ethereum:");
+
+    console.log(
+        JSON.stringify(
+            datos,
+            null,
+            2
+        )
     );
+
 
     // --------------------------------------------------
     // VERIFICAR ERROR JSON-RPC
@@ -88,20 +119,21 @@ async function calcularPrecio(precioNoche, entrada, salida) {
     if (datos.error) {
 
         throw new Error(
-            `RPC ${datos.error.code}: ${datos.error.message}`
+            `Ethereum RPC ${datos.error.code}: ${datos.error.message}`
         );
+
     }
+
 
     // --------------------------------------------------
     // DEVOLVER RESPUESTA
     // --------------------------------------------------
 
     return datos;
+
 }
-// ======================================================
-// EXPORTAR
-// ======================================================
- 
-module.exports = { 
-    calcularPrecio 
+
+
+module.exports = {
+    obtenerEthereum
 };
